@@ -1,0 +1,33 @@
+# Build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.xdv
+/build/
+dist/
+
+# Data: do not commit the dataset (check the competition licence)
+data/*
+!data/.gitkeep
+*.pq
+*.parquet
+
+# Python
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/

@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  latex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: wtfjoke/setup-tectonic@v4
+        with:
+          tectonic-version: "0.17.0"
+
+      - name: Build article
+        run: mkdir -p build && tectonic -o build article.tex
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: article-pdf
+          path: build/article.pdf
