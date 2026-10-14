@@ -10,14 +10,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: wtfjoke/setup-tectonic@v4
-        with:
-          tectonic-version: "0.17.0"
+      - name: Install XeLaTeX and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-xetex texlive-lang-cyrillic \
+            texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended fonts-liberation
 
-      - name: Install TeX Gyre fonts
-        run: sudo apt-get install -y tex-gyre
-      - name: Build article
-        run: mkdir -p build && tectonic -o build article.tex
+      - name: Prepare build folder (Liberation fonts instead of Times New Roman)
+        run: |
+          mkdir -p build
+          cp article.tex misisarticle.cls build/
+          cp -r figures build/
+          sed -i 's/Times New Roman/Liberation Serif/g; s/Courier New/Liberation Mono/g' build/misisarticle.cls
+
+      - name: Build
+        working-directory: build
+        run: |
+          xelatex -interaction=nonstopmode -halt-on-error article.tex
+          xelatex -interaction=nonstopmode -halt-on-error article.tex
 
       - uses: actions/upload-artifact@v4
         with:
