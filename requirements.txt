@@ -1,3 +1,7 @@
 numpy
 pandas
 pyarrow
+scikit-learn
+catboost
+lightgbm
+xgboost
