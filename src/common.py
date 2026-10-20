@@ -78,3 +78,17 @@ def save_preds(out_dir, run_id, p_val, p_te):
     safe = run_id.replace("|", "__")
     np.savez_compressed(os.path.join(out_dir, "preds", safe + ".npz"),
                         val=p_val.astype("float32"), test=p_te.astype("float32"))
+
+
+SUBSET_SEEDS = {"val": 101, "test": 202}
+
+
+def subset_idx(n_total, k, part):
+    """Фиксированное случайное подмножество из k объектов. Вложенное: подмножество
+    меньшего k содержится в большем. k=None или k>=n_total -> все объекты.
+    Одна и та же функция используется для TabPFN и для пересчёта метрик бустингов,
+    поэтому все модели сравниваются на одних и тех же объектах."""
+    if k is None or k >= n_total:
+        return np.arange(n_total)
+    perm = np.random.default_rng(SUBSET_SEEDS[part]).permutation(n_total)
+    return np.sort(perm[:k])
