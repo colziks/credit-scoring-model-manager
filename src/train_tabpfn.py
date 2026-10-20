@@ -24,7 +24,7 @@ from common import (append_row, compute_metrics, done_ids, load_all, parse_name,
 CHUNK = 2000   # порции, чтобы не упереться в память GPU и видеть прогресс
 
 
-def make_model(cat_idx, seed):
+def make_model(cat_idx, seed, fit_mode):
     import tabpfn
     print("tabpfn version:", getattr(tabpfn, "__version__", "?"))
     from tabpfn import TabPFNClassifier
@@ -32,7 +32,7 @@ def make_model(cat_idx, seed):
         from tabpfn.constants import ModelVersion
         return TabPFNClassifier.create_default_for_version(
             ModelVersion.V2_5, categorical_features_indices=cat_idx,
-            random_state=seed, device="cuda")
+            random_state=seed, device="cuda", fit_mode=fit_mode)
     except Exception as e:                       # API не совпало: не молчим и не берём модель по умолчанию
         raise SystemExit(f"Не удалось явно создать TabPFN-2.5 ({e!r}). "
                          f"Проверь API в документации установленной версии tabpfn.")
@@ -55,6 +55,9 @@ def main():
     ap.add_argument("--sizes", nargs="+", type=int, default=None)
     ap.add_argument("--rates", nargs="+", default=None)
     ap.add_argument("--seeds", nargs="+", type=int, default=None)
+    ap.add_argument("--fit-mode", default="fit_preprocessors",
+                    choices=["low_memory", "fit_preprocessors", "fit_with_cache"],
+                    help="режим TabPFN; fit_with_cache должен ускорять предсказание (проверить замером)")
     ap.add_argument("--val-n", type=int, default=None, help="предсказывать только на k объектах val")
     ap.add_argument("--test-n", type=int, default=None, help="предсказывать только на k объектах test")
     args = ap.parse_args()
@@ -68,7 +71,7 @@ def main():
     it = subset_idx(len(test), args.test_n, "test")
     val, test = val.iloc[iv].reset_index(drop=True), test.iloc[it].reset_index(drop=True)
     yv, yt = val["flag"].to_numpy(), test["flag"].to_numpy()
-    sub = f"|sub{len(val)}_{len(test)}"
+    sub = f"|sub{len(val)}_{len(test)}" + ("" if args.fit_mode == "fit_preprocessors" else f"|{args.fit_mode}")
     print(f"val {len(val)} (дефолтов {int(yv.sum())}), test {len(test)} (дефолтов {int(yt.sum())})")
 
     for rel in train_files:
@@ -84,14 +87,14 @@ def main():
             run_id = f"tabpfn25|train_n{n}_p{p}_s{s}|fs{fs}{sub}"
             if run_id in done:
                 continue
-            model = make_model(cat_idx, s)
+            model = make_model(cat_idx, s, args.fit_mode)
             t0 = time.time(); model.fit(train[cols], ytr); t_fit = time.time() - t0
             t0 = time.time()
             pv = predict_chunks(model, val[cols], "val"); pt = predict_chunks(model, test[cols], "test")
             t_pred = time.time() - t0
             met = compute_metrics(yv, pv, yt, pt)
             row = dict(run_id=run_id, model="tabpfn25", n=n, rate=p, seed=s, feature_set=fs,
-                       n_features=len(cols), val_n=len(val), test_n=len(test), train_default_rate=float(ytr.mean()),
+                       n_features=len(cols), fit_mode=args.fit_mode, val_n=len(val), test_n=len(test), train_default_rate=float(ytr.mean()),
                        t_fit=t_fit, t_pred=t_pred, **met)
             append_row(res_path, row)
             save_preds(args.out, run_id, pv, pt)
