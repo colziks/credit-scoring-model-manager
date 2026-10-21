@@ -69,8 +69,19 @@ def done_ids(path):
 
 
 def append_row(path, row):
-    df = pd.DataFrame([row])
-    df.to_csv(path, mode="a", header=not os.path.exists(path), index=False)
+    """Дописывает строку. Если набор колонок изменился (добавили новые поля),
+    файл перезаписывается с объединением колонок; старые строки получают пустые значения."""
+    new = pd.DataFrame([row])
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            header = f.readline().strip().split(",")
+        if header == list(new.columns):
+            new.to_csv(path, mode="a", header=False, index=False)
+            return
+        old = pd.read_csv(path, engine="python", on_bad_lines="skip")
+        pd.concat([old, new], ignore_index=True).to_csv(path, index=False)
+        return
+    new.to_csv(path, index=False)
 
 
 def save_preds(out_dir, run_id, p_val, p_te):
