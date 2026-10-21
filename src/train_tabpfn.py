@@ -87,19 +87,30 @@ def main():
             run_id = f"tabpfn25|train_n{n}_p{p}_s{s}|fs{fs}{sub}"
             if run_id in done:
                 continue
-            model = make_model(cat_idx, s, args.fit_mode)
-            t0 = time.time(); model.fit(train[cols], ytr); t_fit = time.time() - t0
-            t0 = time.time()
-            pv = predict_chunks(model, val[cols], "val"); pt = predict_chunks(model, test[cols], "test")
-            t_pred = time.time() - t0
+            base = dict(run_id=run_id, model="tabpfn25", n=n, rate=p, seed=s, feature_set=fs,
+                        n_features=len(cols), fit_mode=args.fit_mode, val_n=len(val),
+                        test_n=len(test), train_default_rate=float(ytr.mean()))
+            model = None
+            try:
+                model = make_model(cat_idx, s, args.fit_mode)
+                t0 = time.time(); model.fit(train[cols], ytr); t_fit = time.time() - t0
+                t0 = time.time()
+                pv = predict_chunks(model, val[cols], "val"); pt = predict_chunks(model, test[cols], "test")
+                t_pred = time.time() - t0
+            except Exception as e:
+                # нехватка памяти GPU фиксируется как результат запуска, остальная сетка продолжается
+                if "out of memory" not in str(e).lower():
+                    raise
+                print(f"{run_id}: OOM (нехватка памяти GPU)", flush=True)
+                append_row(res_path, dict(**base, status="oom"))
+                del model
+                import gc, torch
+                gc.collect(); torch.cuda.empty_cache()
+                continue
             met = compute_metrics(yv, pv, yt, pt)
-            row = dict(run_id=run_id, model="tabpfn25", n=n, rate=p, seed=s, feature_set=fs,
-                       n_features=len(cols), fit_mode=args.fit_mode, val_n=len(val), test_n=len(test), train_default_rate=float(ytr.mean()),
-                       t_fit=t_fit, t_pred=t_pred, **met)
-            append_row(res_path, row)
+            append_row(res_path, dict(**base, status="ok", t_fit=t_fit, t_pred=t_pred, **met))
             save_preds(args.out, run_id, pv, pt)
             print(f"{run_id}: AUC {met['auc_test']:.4f}  fit {t_fit:.1f}s  pred {t_pred:.1f}s", flush=True)
-
 
 if __name__ == "__main__":
     main()
