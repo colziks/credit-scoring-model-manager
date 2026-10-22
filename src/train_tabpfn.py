@@ -38,11 +38,11 @@ def make_model(cat_idx, seed, fit_mode):
                          f"Проверь API в документации установленной версии tabpfn.")
 
 
-def predict_chunks(model, X, label=""):
+def predict_chunks(model, X, label="", chunk=CHUNK):
     out, t0 = [], time.time()
-    for i in range(0, len(X), CHUNK):
-        out.append(model.predict_proba(X.iloc[i:i + CHUNK])[:, 1])
-        done = min(i + CHUNK, len(X))
+    for i in range(0, len(X), chunk):
+        out.append(model.predict_proba(X.iloc[i:i + chunk])[:, 1])
+        done = min(i + chunk, len(X))
         print(f"   {label} {done}/{len(X)}  {time.time() - t0:.0f}s", flush=True)
     return np.concatenate(out)
 
@@ -58,6 +58,7 @@ def main():
     ap.add_argument("--fit-mode", default="fit_preprocessors",
                     choices=["low_memory", "fit_preprocessors", "fit_with_cache"],
                     help="режим TabPFN; fit_with_cache должен ускорять предсказание (проверить замером)")
+    ap.add_argument("--chunk", type=int, default=CHUNK, help="размер порции predict_proba (большая порция может резко ускорить)")
     ap.add_argument("--val-n", type=int, default=None, help="предсказывать только на k объектах val")
     ap.add_argument("--test-n", type=int, default=None, help="предсказывать только на k объектах test")
     args = ap.parse_args()
@@ -88,14 +89,14 @@ def main():
             if run_id in done:
                 continue
             base = dict(run_id=run_id, model="tabpfn25", n=n, rate=p, seed=s, feature_set=fs,
-                        n_features=len(cols), fit_mode=args.fit_mode, val_n=len(val),
+                        n_features=len(cols), fit_mode=args.fit_mode, chunk=args.chunk, val_n=len(val),
                         test_n=len(test), train_default_rate=float(ytr.mean()))
             model = None
             try:
                 model = make_model(cat_idx, s, args.fit_mode)
                 t0 = time.time(); model.fit(train[cols], ytr); t_fit = time.time() - t0
                 t0 = time.time()
-                pv = predict_chunks(model, val[cols], "val"); pt = predict_chunks(model, test[cols], "test")
+                pv = predict_chunks(model, val[cols], "val", args.chunk); pt = predict_chunks(model, test[cols], "test", args.chunk)
                 t_pred = time.time() - t0
             except Exception as e:
                 # нехватка памяти GPU фиксируется как результат запуска, остальная сетка продолжается
