@@ -130,9 +130,16 @@ def main():
     ap.add_argument("--csv", nargs="+", required=True)
     ap.add_argument("--out", default="results")
     ap.add_argument("--figs", default="figures")
+    ap.add_argument("--val-n", type=int, default=None, help="оставить только запуски с таким val_n")
+    ap.add_argument("--test-n", type=int, default=None, help="оставить только запуски с таким test_n")
     args = ap.parse_args()
     os.makedirs(args.figs, exist_ok=True); os.makedirs(args.out, exist_ok=True)
     d = load(args.csv)
+    if args.val_n is not None and "val_n" in d:
+        d = d[d["val_n"] == args.val_n]
+    if args.test_n is not None and "test_n" in d:
+        d = d[d["test_n"] == args.test_n]
+    d = d.reset_index(drop=True)
     d["feature_set"] = d["feature_set"].astype(str)
     fig_auc_by_size(d, args.figs, "all")
     fig_auc_vs_positives(d, args.figs, "all")
