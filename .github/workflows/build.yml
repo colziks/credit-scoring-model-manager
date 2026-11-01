@@ -10,19 +10,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install XeLaTeX and fonts
+      - name: Install XeLaTeX
         run: |
           sudo apt-get update
           sudo apt-get install -y texlive-xetex texlive-lang-cyrillic \
             texlive-latex-recommended texlive-latex-extra \
-            texlive-fonts-recommended fonts-liberation
+            texlive-fonts-recommended fonts-texgyre
 
-      - name: Prepare build folder (Liberation fonts instead of Times New Roman)
+      # Real Times New Roman and Courier New (Microsoft core fonts).
+      # If the download fails, the build continues: misisarticle.cls then falls back to TeX Gyre Termes.
+      - name: Install Times New Roman
+        continue-on-error: true
+        run: |
+          sudo add-apt-repository -y multiverse
+          sudo apt-get update
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get install -y ttf-mscorefonts-installer
+          sudo fc-cache -f
+
+      - name: Check fonts
+        run: fc-list | grep -i "Times New Roman" | head -n 4 || echo "Times New Roman NOT installed, the class will use TeX Gyre Termes"
+
+      - name: Prepare build folder
         run: |
           mkdir -p build
           cp article.tex misisarticle.cls build/
           cp -r figures build/
-          sed -i 's/Times New Roman/Liberation Serif/g; s/Courier New/Liberation Mono/g' build/misisarticle.cls
 
       - name: Build
         working-directory: build
@@ -30,7 +43,11 @@ jobs:
           xelatex -interaction=nonstopmode -halt-on-error article.tex
           xelatex -interaction=nonstopmode -halt-on-error article.tex
 
-      - uses: actions/upload-artifact@v4
+      - name: Fonts embedded in the PDF
+        run: pdffonts build/article.pdf || true
+
+      # archive: false uploads the single file as is (not zipped); the artifact is named article.pdf
+      - uses: actions/upload-artifact@v7
         with:
-          name: article-pdf
           path: build/article.pdf
+          archive: false
