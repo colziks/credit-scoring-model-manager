@@ -28,7 +28,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from sklearn.metrics import roc_auc_score
+
 from manager import subset_idx, thr_reject, e1, load_runs, SUB
+
+
+def e2(reject, y):
+    neg = y == 0
+    return float(np.sum(reject & neg) / neg.sum())
 
 
 def parse_times(s):
@@ -67,10 +74,11 @@ def main():
 
     # E_I of both models per run (validation and test) and the time of both models
     for r in runs:
-        r["ev"], r["et"], r["rej_t"] = {}, {}, {}
+        r["ev"], r["et"], r["rej_t"], r["auc"], r["e2"] = {}, {}, {}, {}, {}
         for name, (pv, pt) in {"TabPFN-2.5": (r["tv"], r["tt"]), "CatBoost": (r["cv"], r["ct"])}.items():
             rv, rt = thr_reject(pv, pt, q)
             r["ev"][name], r["et"][name], r["rej_t"][name] = e1(rv, yv), e1(rt, yt), rt
+            r["auc"][name], r["e2"][name] = roc_auc_score(yt, pt), e2(rt, yt)
         r["time"] = {"TabPFN-2.5": tT[r["N"]], "CatBoost": tC[r["N"]]}
     t_ref = np.mean([r["time"]["TabPFN-2.5"] for r in runs])        # "TabPFN everywhere"
 
@@ -114,8 +122,12 @@ def main():
 
     rows, picks = [], {}
     print("Времена (с): TabPFN-2.5 %s; CatBoost %s" % (tT, tC))
-    print("q = %.0f%%; E_I на тесте: TabPFN везде %.4f (стоимость 1,00), CatBoost везде %.4f (стоимость %.2f)\n" % (
+    print("q = %.0f%%; E_I на тесте: TabPFN везде %.4f (стоимость 1,00), CatBoost везде %.4f (стоимость %.2f)" % (
         q * 100, e_tab, e_cat, np.mean([r["time"]["CatBoost"] for r in runs]) / t_ref))
+    for name in ("TabPFN-2.5", "CatBoost"):
+        print("   %-10s везде: ROC AUC %.4f, E_II %.4f" % (name, np.mean([r["auc"][name] for r in runs]),
+                                                           np.mean([r["e2"][name] for r in runs])))
+    print()
     for mu in args.mus:
         (tau_s, nm_s, L_v, C_v, J_v), win, grid = best(runs, mu)
         rej = [r["rej_t"][pick(r, tau_s, nm_s)] for r in runs]
@@ -123,8 +135,12 @@ def main():
         L_t, C_t = point(runs, tau_s, nm_s, "test")
         d_tab = np.percentile(b_m - b_tab, [2.5, 97.5])
         n_tab = sum(pick(r, tau_s, nm_s) == "TabPFN-2.5" for r in runs)
+        chosen = [pick(r, tau_s, nm_s) for r in runs]
+        auc_m = np.mean([r["auc"][c] for r, c in zip(runs, chosen)])
+        e2_m = np.mean([r["e2"][c] for r, c in zip(runs, chosen)])
         rows.append(dict(mu=mu, tau=tau_s, N_max=nm_s, n_minimum_points=len(win), J_val=round(J_v, 4),
-                         E_I_test=round(L_t, 4), cost=round(C_t, 3), runs_tabpfn=n_tab,
+                         E_I_test=round(L_t, 4), E_II_test=round(e2_m, 4), AUC_test=round(auc_m, 4),
+                         cost=round(C_t, 3), runs_tabpfn=n_tab,
                          vs_tabpfn=round(L_t - e_tab, 4), ci_low=round(d_tab[0], 4), ci_high=round(d_tab[1], 4),
                          vs_catboost=round(L_t - e_cat, 4)))
         picks[mu] = (tau_s, nm_s)
@@ -142,7 +158,7 @@ def main():
 
     tab = pd.DataFrame(rows)
     tab.to_csv(os.path.join(args.results, "manager_cost_q%02d.csv" % round(q * 100)), index=False, encoding="utf-8-sig")
-    show = tab[["mu", "tau", "N_max", "n_minimum_points", "E_I_test", "cost", "runs_tabpfn", "vs_tabpfn", "ci_low", "ci_high", "lono_E_I", "lono_cost"]]
+    show = tab[["mu", "tau", "N_max", "n_minimum_points", "E_I_test", "E_II_test", "AUC_test", "cost", "runs_tabpfn", "vs_tabpfn", "ci_low", "ci_high", "lono_E_I", "lono_cost"]]
     print(show.to_string(index=False))
     print("\n(vs_tabpfn: E_I менеджера минус E_I TabPFN везде, 95% ДИ; cost: относительное время, TabPFN везде = 1;")
     print(" lono_*: то же при выборе порогов без запусков проверяемого N, среднее по N)")
