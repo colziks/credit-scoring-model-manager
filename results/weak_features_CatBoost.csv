@@ -1,0 +1,86 @@
+﻿модель,признак,группа,AUC_пропущен_vs_пойман,AUC_пропущен_vs_одобренный_хороший
+CatBoost,n_loans,длина истории,0.653,0.494
+CatBoost,is_zero_loans5__sum,флаги кредитов,0.662,0.489
+CatBoost,is_zero_loans5__mean,флаги кредитов,0.555,0.481
+CatBoost,is_zero_loans530__sum,флаги кредитов,0.676,0.471
+CatBoost,is_zero_loans530__mean,флаги кредитов,0.546,0.42
+CatBoost,is_zero_loans3060__sum,флаги кредитов,0.686,0.486
+CatBoost,is_zero_loans3060__mean,флаги кредитов,0.557,0.464
+CatBoost,is_zero_loans6090__sum,флаги кредитов,0.664,0.491
+CatBoost,is_zero_loans6090__mean,флаги кредитов,0.547,0.477
+CatBoost,is_zero_loans90__sum,флаги кредитов,0.669,0.491
+CatBoost,is_zero_loans90__mean,флаги кредитов,0.574,0.477
+CatBoost,is_zero_util__sum,флаги кредитов,0.62,0.482
+CatBoost,is_zero_util__mean,флаги кредитов,0.51,0.465
+CatBoost,is_zero_over2limit__sum,флаги кредитов,0.634,0.494
+CatBoost,is_zero_over2limit__mean,флаги кредитов,0.338,0.501
+CatBoost,is_zero_maxover2limit__sum,флаги кредитов,0.637,0.484
+CatBoost,is_zero_maxover2limit__mean,флаги кредитов,0.412,0.479
+CatBoost,pclose_flag__sum,флаги кредитов,0.669,0.529
+CatBoost,pclose_flag__mean,флаги кредитов,0.604,0.539
+CatBoost,fclose_flag__sum,флаги кредитов,0.602,0.53
+CatBoost,fclose_flag__mean,флаги кредитов,0.455,0.524
+CatBoost,enc_loans_account_holder_type__cnt0,коды кредита,,
+CatBoost,enc_loans_account_holder_type__cnt1,коды кредита,0.65,0.497
+CatBoost,enc_loans_account_holder_type__cnt2,коды кредита,,0.5
+CatBoost,enc_loans_account_holder_type__cnt3,коды кредита,0.525,0.479
+CatBoost,enc_loans_account_holder_type__cnt4,коды кредита,0.507,0.491
+CatBoost,enc_loans_account_holder_type__cnt5,коды кредита,,0.5
+CatBoost,enc_loans_account_holder_type__cnt6,коды кредита,0.502,0.5
+CatBoost,enc_loans_account_holder_type__nunique,коды кредита,0.534,0.474
+CatBoost,enc_loans_credit_status__cnt0,коды кредита,0.5,0.5
+CatBoost,enc_loans_credit_status__cnt1,коды кредита,,0.492
+CatBoost,enc_loans_credit_status__cnt2,коды кредита,0.701,0.536
+CatBoost,enc_loans_credit_status__cnt3,коды кредита,0.623,0.478
+CatBoost,enc_loans_credit_status__cnt4,коды кредита,0.482,0.511
+CatBoost,enc_loans_credit_status__cnt5,коды кредита,0.509,0.503
+CatBoost,enc_loans_credit_status__cnt6,коды кредита,0.477,0.502
+CatBoost,enc_loans_credit_status__nunique,коды кредита,0.598,0.508
+CatBoost,enc_loans_credit_type__cnt0,коды кредита,0.548,0.435
+CatBoost,enc_loans_credit_type__cnt1,коды кредита,0.509,0.493
+CatBoost,enc_loans_credit_type__cnt2,коды кредита,0.545,0.458
+CatBoost,enc_loans_credit_type__cnt3,коды кредита,0.759,0.501
+CatBoost,enc_loans_credit_type__cnt4,коды кредита,0.712,0.503
+CatBoost,enc_loans_credit_type__cnt5,коды кредита,0.295,0.522
+CatBoost,enc_loans_credit_type__nunique,коды кредита,0.606,0.469
+CatBoost,enc_loans_account_cur__cnt0,коды кредита,,0.499
+CatBoost,enc_loans_account_cur__cnt1,коды кредита,0.653,0.494
+CatBoost,enc_loans_account_cur__cnt2,коды кредита,0.505,0.498
+CatBoost,enc_loans_account_cur__cnt3,коды кредита,,
+CatBoost,enc_loans_account_cur__nunique,коды кредита,0.505,0.497
+CatBoost,paym_recent__cnt0,статусы платежей,0.823,0.477
+CatBoost,paym_recent__cnt1,статусы платежей,0.438,0.571
+CatBoost,paym_recent__cnt2,статусы платежей,0.409,0.505
+CatBoost,paym_recent__cnt3,статусы платежей,0.277,0.546
+CatBoost,paym_mid__cnt0,статусы платежей,0.849,0.463
+CatBoost,paym_mid__cnt1,статусы платежей,0.49,0.55
+CatBoost,paym_mid__cnt2,статусы платежей,0.437,0.516
+CatBoost,paym_mid__cnt3,статусы платежей,0.454,0.522
+CatBoost,paym_old__cnt0,статусы платежей,0.781,0.428
+CatBoost,paym_old__cnt1,статусы платежей,0.5,0.53
+CatBoost,paym_old__cnt2,статусы платежей,0.445,0.51
+CatBoost,paym_old__cnt3,статусы платежей,0.605,0.519
+CatBoost,paym_recent__share_nonzero,статусы платежей,0.065,0.599
+CatBoost,paym_mid__share_nonzero,статусы платежей,0.083,0.585
+CatBoost,paym_old__share_nonzero,статусы платежей,0.234,0.598
+CatBoost,pre_since_opened__nunique,интервальные,0.736,0.471
+CatBoost,pre_since_confirmed__nunique,интервальные,0.675,0.474
+CatBoost,pre_pterm__nunique,интервальные,0.738,0.482
+CatBoost,pre_fterm__nunique,интервальные,0.746,0.474
+CatBoost,pre_till_pclose__nunique,интервальные,0.739,0.469
+CatBoost,pre_till_fclose__nunique,интервальные,0.713,0.476
+CatBoost,pre_loans_credit_limit__nunique,интервальные,0.707,0.505
+CatBoost,pre_loans_next_pay_summ__nunique,интервальные,0.71,0.524
+CatBoost,pre_loans_outstanding__nunique,интервальные,0.673,0.522
+CatBoost,pre_loans_max_overdue_sum__nunique,интервальные,0.542,0.521
+CatBoost,pre_loans_credit_cost_rate__nunique,интервальные,0.701,0.523
+CatBoost,pre_loans5__nunique,интервальные,0.484,0.515
+CatBoost,pre_loans530__nunique,интервальные,0.456,0.51
+CatBoost,pre_loans3060__nunique,интервальные,0.5,0.498
+CatBoost,pre_loans6090__nunique,интервальные,0.5,0.5
+CatBoost,pre_loans90__nunique,интервальные,0.502,0.5
+CatBoost,pre_util__nunique,интервальные,0.673,0.532
+CatBoost,pre_over2limit__nunique,интервальные,0.621,0.495
+CatBoost,pre_maxover2limit__nunique,интервальные,0.614,0.517
+CatBoost,enc_loans_credit_type__cnt6,коды кредита,0.532,0.53
+CatBoost,enc_loans_credit_type__cnt7,коды кредита,0.539,0.504

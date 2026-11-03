@@ -111,9 +111,12 @@ def tables(d, out):
     t.reset_index().to_csv(os.path.join(out, "profile_table.csv"), index=False)
     # кто лучше по AUC в каждой ячейке (N, доля, k): основа для правил менеджера
     cell = d.groupby(["feature_set", "n", "rate", "model"]).auc_test.mean().reset_index()
+    # сравниваем только ячейки, где есть ВСЕ модели (иначе модель без данных "проигрывает" по умолчанию)
+    n_models = cell.groupby(["feature_set", "n", "rate"]).model.transform("nunique")
+    cell = cell[n_models == d.model.nunique()]
     best = cell.loc[cell.groupby(["feature_set", "n", "rate"]).auc_test.idxmax()]
     best.to_csv(os.path.join(out, "best_by_cell.csv"), index=False)
-    print("\nЛучшая по среднему AUC модель в ячейках (число ячеек):")
+    print(f"\nЛучшая по среднему AUC модель в ячейках, где есть все модели (ячеек: {len(best)}):")
     print(best.model.value_counts().to_string())
     # проверка гипотезы: что объясняет AUC - число дефолтов или размер N (МНК на log-признаках)
     print("\nМНК: auc ~ log10(число дефолтов) + log10(N) + доля, по моделям (набор all)")
